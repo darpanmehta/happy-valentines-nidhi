@@ -1155,9 +1155,9 @@
     <div class="hug-message" id="hugMessage">Sending you the biggest virtual hug, Khushi! 🤗💖</div>
 
     <!-- Background Music -->
-    <audio id="bgMusic" loop preload="auto">
-        <source src="Cupid.mp3" type="audio/mpeg">
+    <audio id="bgMusic" loop preload="metadata" crossorigin="anonymous">
         <source src="./Cupid.mp3" type="audio/mpeg">
+        <source src="Cupid.mp3" type="audio/mpeg">
     </audio>
 
     <!-- Music Control Button -->
@@ -1910,6 +1910,17 @@
             });
         }
 
+        // Audio error handling
+        music.addEventListener('error', (e) => {
+            console.error('Audio error:', e);
+            console.error('Audio error code:', music.error?.code);
+            console.error('Audio error message:', music.error?.message);
+        });
+
+        music.addEventListener('loadeddata', () => {
+            console.log('Audio loaded successfully');
+        });
+
         // Try autoplay first
         music.currentTime = startTime;
         music.play().then(() => {
@@ -1917,7 +1928,8 @@
             hasMusicInteracted = true;
             updateMusicButton();
             removeInteractionListeners();
-        }).catch(() => {
+        }).catch((err) => {
+            console.log('🎵 Autoplay blocked:', err.message);
             console.log('🎵 Waiting for interaction to play music...');
             addInteractionListeners();
         });
