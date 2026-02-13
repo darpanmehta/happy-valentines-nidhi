@@ -802,7 +802,7 @@ filter: drop-shadow(0 0 15px rgba(255,215,0,0.8));
         console.log('%c🧸 The teddy is rooting for you!', 'font-size: 14px; color: #a855f7;');
     </script>   
     <!-- Background Music -->
-    <audio id="bgMusic" loop preload="auto">
+    <audio id="bgMusic" loop preload="auto" muted autoplay playsinline>
         <source src="Where-Is-My-Husband.mp3" type="audio/mpeg">
     </audio>
 
@@ -904,142 +904,41 @@ filter: drop-shadow(0 0 15px rgba(255,215,0,0.8));
 
     <script>
         // ========== MUSIC CONTROLLER ==========
-        const music = document.getElementById('bgMusic');
-        const musicBtn = document.getElementById('musicToggle');
-        let isMusicPlaying = true;
-        let hasMusicInteracted = true;
-
-        // Music settings
-        music.volume = 0.4;
-        const startTime = 11; // Start from 10 seconds
-
-        // Create visualizer bars
-        const barsContainer = document.createElement('div');
-        barsContainer.className = 'music-bars';
-        for (let i = 0; i < 4; i++) {
-            const bar = document.createElement('div');
-            bar.className = 'music-bar';
-            barsContainer.appendChild(bar);
-        }
-        musicBtn.innerHTML = '';
-        musicBtn.appendChild(document.createTextNode('🎵'));
-
-        // Function to start music
-        function startMusic() {
-            music.currentTime = startTime;
-            music.play().then(() => {
-                isMusicPlaying = true;
-                hasMusicInteracted = true;
-                updateMusicButton();
-            }).catch(err => {
-                console.log('Music play failed:', err);
-            });
-        }
-
-        // Function to update button appearance
-        function updateMusicButton() {
-            if (isMusicPlaying) {
-                musicBtn.innerHTML = '';
-                musicBtn.appendChild(barsContainer.cloneNode(true));
-                musicBtn.classList.add('playing');
-            } else {
-                musicBtn.innerHTML = '🎵';
-                musicBtn.classList.remove('playing');
-            }
-        }
-
-        // Toggle music function
-        function toggleMusic(e) {
-            e.stopPropagation();
-            
-            if (!hasMusicInteracted) {
-                startMusic();
-                return;
-            }
-
-            if (isMusicPlaying) {
-                music.pause();
-                isMusicPlaying = false;
-            } else {
-                music.currentTime = startTime;
-                music.play();
-                isMusicPlaying = true;
-            }
-            updateMusicButton();
-        }
-
-        // Button click handler
-        musicBtn.addEventListener('click', toggleMusic);
-
-        // All possible interaction events for autoplay
-        const interactionEvents = [
-            'click',
-            'touchstart',
-            'mousemove',
-            'scroll',
-            'keydown'
-        ];
-
-        // Handler for first interaction
-        function onFirstInteraction(e) {
-            if (hasMusicInteracted) return;
-            if (e.target.id === 'musicToggle') return; // Let button handle itself
-            
-            startMusic();
-            removeInteractionListeners();
-        }
-
-        // Add interaction listeners
-        function addInteractionListeners() {
-            interactionEvents.forEach(event => {
-                document.addEventListener(event, onFirstInteraction, { passive: true });
-            });
-        }
-
-        // Remove interaction listeners
-        function removeInteractionListeners() {
-            interactionEvents.forEach(event => {
-                document.removeEventListener(event, onFirstInteraction);
-            });
-        }
-
-        // Try autoplay first
+    <script>
+    const music = document.getElementById('bgMusic');
+    const musicBtn = document.getElementById('musicToggle');
+    
+    music.volume = 0.4;
+    const startTime = 11;
+    
+    let started = false;
+    
+    // Try autoplay muted
+    music.currentTime = startTime;
+    music.play().catch(()=>{});
+    
+    // When user touches anywhere → unmute
+    function unlockAudio() {
+        if (started) return;
+    
+        music.muted = false;
         music.currentTime = startTime;
-        music.play().then(() => {
-            isMusicPlaying = true;
-            hasMusicInteracted = true;
-            updateMusicButton();
-            removeInteractionListeners();
-        }).catch(() => {
-            // Autoplay blocked - add listeners for first interaction
-            console.log('🎵 Waiting for interaction to play music...');
-            addInteractionListeners();
-        });
-
-        // Handle page visibility (pause when tab hidden)
-        document.addEventListener('visibilitychange', () => {
-            if (!hasMusicInteracted) return;
-            
-            if (document.hidden && isMusicPlaying) {
-                music.pause();
-            } else if (!document.hidden && isMusicPlaying) {
-                music.play();
-            }
-        });
-
-        // When song loops, restart from 9 seconds
-        music.addEventListener('ended', () => {
-            music.currentTime = startTime;
+        music.play();
+        started = true;
+    }
+    
+    document.addEventListener("click", unlockAudio);
+    document.addEventListener("touchstart", unlockAudio);
+    document.addEventListener("mousemove", unlockAudio);
+    
+    // Toggle button
+    musicBtn.addEventListener("click", (e)=>{
+        e.stopPropagation();
+    
+        if (music.paused) {
             music.play();
-        });
-
-        // Double-check loop reset (in case 'ended' doesn't fire with loop)
-        music.addEventListener('timeupdate', () => {
-            // If near the end, go back to start time
-            if (music.duration - music.currentTime < 0.5) {
-                music.currentTime = startTime;
-            }
-        });
+        } else {
+            music.pause();
+        }
+    });
     </script>
-</body>
-</html>
